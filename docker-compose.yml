@@ -1,0 +1,53 @@
+version: "3.7"
+
+services:
+    app:
+        build:
+            args:
+                user: ${USER:-bakhadyrovf}
+                uid: ${UID:-1000}
+            context: ./
+            dockerfile: docker/Dockerfile
+        image: alif-tech-test-assignment
+        container_name: alif-tech-test-assignment-app
+        restart: unless-stopped
+        volumes:
+            -   ./:/var/www
+        networks:
+            - alif-tech-test-assignment-network
+
+    nginx:
+        image: nginx:alpine
+        container_name: alif-tech-test-assignment-nginx
+        restart: unless-stopped
+        ports:
+            -   "80:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/:/etc/nginx/conf.d
+        networks:
+            - alif-tech-test-assignment-network
+
+    db:
+        image: mysql:latest
+        container_name: alif-tech-test-assignment-db
+        restart: unless-stopped
+        volumes:
+            -   alif-tech-test-assignment-db-data:/var/lib/mysql
+            - ./docker/mysql/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        networks:
+            - alif-tech-test-assignment-network
+volumes:
+    alif-tech-test-assignment-db-data:
+        driver: local
+
+networks:
+    alif-tech-test-assignment-network:
+        driver: bridge
