@@ -44,8 +44,27 @@ services:
             SERVICE_NAME: mysql
         networks:
             - alif-tech-test-assignment-network
+
+    search-engine:
+        image: elasticsearch:8.2.2
+        container_name: alif-tech-test-assignment-search-engine
+        environment:
+            - discovery.type=single-node
+            - ES_JAVA_OPTS=-Xms1g -Xmx1g
+            - ELASTIC_PASSWORD=password
+            - xpack.security.enabled=false
+        volumes:
+            - alif-tech-test-assignment-es-data:/usr/share/elasticsearch/data
+        ports:
+            - target: 9200
+              published: 9200
+        networks:
+            - alif-tech-test-assignment-network
+
 volumes:
     alif-tech-test-assignment-db-data:
+        driver: local
+    alif-tech-test-assignment-es-data:
         driver: local
 
 networks:

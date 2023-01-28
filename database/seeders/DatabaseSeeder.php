@@ -17,16 +17,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        Contact::factory()
-            ->has(
-                ContactEmail::factory()->count(3),
-                'emails'
-            )
-            ->has(
-                ContactPhone::factory()->count(3),
-                'phones'
-            )
-            ->count(100)
-            ->create();
+        $this->call([
+            ContactSeeder::class
+        ]);
     }
 }
