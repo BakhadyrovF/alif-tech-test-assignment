@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Foundation\Auth\User;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
@@ -60,6 +61,21 @@ final class ElasticsearchService
     public function doesIndexExist(string $index): bool
     {
         return Http::head($this->concatIndexToUrl($index))->status() === 200;
+    }
+
+    /**
+     * @param string $index
+     * @param array $body
+     * @return array
+     * @throws Exception
+     */
+    public function search(string $index, array $body): array
+    {
+        $response = Http::post($this->concatIndexToUrl($index) . '/_search' , $body);
+
+        $this->throwIfResponseIsNotOk($response);
+
+        return $response->json('hits.hits');
     }
 
     /**

@@ -43,7 +43,7 @@ class ContactSeeder extends Seeder
             $elasticsearchService->indexDocument(ElasticsearchIndex::CONTACT->value, $contact->id, [
                 'name' => $contact->name,
                 'emails' => $contact->emails->pluck('email')->toArray(),
-                'phones' => $contact->phones->pluck('phone_number')->toArray(),
+                'phones' => $contact->phones->pluck('phone_number')->toArray()
             ]);
         }
     }

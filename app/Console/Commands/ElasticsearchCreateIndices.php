@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\ElasticsearchIndex;
 use App\Services\ElasticsearchService;
+use Exception;
 use Illuminate\Console\Command;
 
 class ElasticsearchCreateIndices extends Command
@@ -27,6 +28,7 @@ class ElasticsearchCreateIndices extends Command
      *
      * @param ElasticsearchService $elasticsearchService
      * @return void
+     * @throws Exception
      */
     public function handle(ElasticsearchService $elasticsearchService): void
     {

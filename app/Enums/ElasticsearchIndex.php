@@ -18,7 +18,7 @@ enum ElasticsearchIndex: string
                         'emails' => [
                             'type' => 'text'
                         ],
-                        'phone_numbers' => [
+                        'phones' => [
                             'type' => 'text'
                         ]
                     ]

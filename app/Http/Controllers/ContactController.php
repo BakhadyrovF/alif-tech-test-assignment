@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ContactCreateAction;
+use App\Actions\ContactSearchAction;
 use App\Actions\ContactUpdateAction;
 use App\DTOs\ContactCreateDTO;
 use App\DTOs\ContactUpdateDTO;
@@ -13,29 +14,44 @@ use App\Http\Responses\ResourceCreatedResponse;
 use App\Http\Responses\ResourceNotFoundResponse;
 use App\Http\Responses\ResourceUpdatedResponse;
 use App\Models\Contact;
+use App\Services\ElasticsearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
 {
     /**
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @throws \Exception
      */
-    public function index()
+    public function index(Request $request, ElasticsearchService $elasticsearchService, ContactSearchAction $searchAction)
     {
+        $validator = Validator::make($request->query(), [
+            'search' => ['filled', 'string']
+        ]);
 
+        $contactsBuilder = Contact::with(['emails', 'phones']);
+
+        if (isset($validator->valid()['search'])) {
+            $targetIds = $searchAction->handle($validator->valid()['search'], $elasticsearchService);
+            $contactsBuilder->whereIn('id', $targetIds)
+                ->orderByRaw("FIELD(id, {$targetIds->implode(', ')})");
+        }
+
+        return ContactResource::collection($contactsBuilder->paginate(20));
     }
 
     /**
      * @param ContactCreateFormRequest $request
-     * @param ContactCreateAction $action
+     * @param ContactCreateAction $createAction
      * @param ResourceCreatedResponse $createdResponse
      * @return JsonResponse
      */
-    public function store(ContactCreateFormRequest $request, ContactCreateAction $action, ResourceCreatedResponse $createdResponse): JsonResponse
+    public function store(ContactCreateFormRequest $request, ContactCreateAction $createAction, ResourceCreatedResponse $createdResponse): JsonResponse
     {
-        $contact = $action->handle(new ContactCreateDTO(...$request->validated()));
+        $contact = $createAction->handle(new ContactCreateDTO(...$request->validated()));
         return new JsonResponse([
             'message' => $createdResponse->getMessage(),
             'data' => new ContactResource($contact)
@@ -63,17 +79,17 @@ class ContactController extends Controller
     /**
      * @param ContactUpdateFormRequest $request
      * @param int|string $id
-     * @param ContactUpdateAction $action
+     * @param ContactUpdateAction $updateAction
      * @param ResourceNotFoundResponse $notFoundResponse
      * @param ResourceUpdatedResponse $updatedResponse
      * @return JsonResponse
      */
     public function update(
         ContactUpdateFormRequest $request,
-        int|string $id,
-        ContactUpdateAction $action,
+        int|string               $id,
+        ContactUpdateAction      $updateAction,
         ResourceNotFoundResponse $notFoundResponse,
-        ResourceUpdatedResponse $updatedResponse
+        ResourceUpdatedResponse  $updatedResponse
     ): JsonResponse {
         $contact = Contact::find($id);
 
@@ -85,7 +101,7 @@ class ContactController extends Controller
 
         return new JsonResponse([
             'message' => $updatedResponse->getMessage(),
-            'data' => new ContactResource($action->handle($contact, new ContactUpdateDTO(...$request->validated())))
+            'data' => new ContactResource($updateAction->handle($contact, new ContactUpdateDTO(...$request->validated())))
         ]);
     }
 
