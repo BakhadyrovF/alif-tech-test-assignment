@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\DTOs\ContactSearchDTO;
 use App\Enums\ElasticsearchIndex;
 use App\Services\ElasticsearchService;
 use Exception;
@@ -15,13 +16,13 @@ final class ContactSearchAction
      * @return Collection
      * @throws Exception
      */
-    public function handle(string $searchable, ElasticsearchService $elasticsearchService): Collection
+    public function handle(ContactSearchDTO $dto, ElasticsearchService $elasticsearchService): Collection
     {
         return collect($elasticsearchService->search(ElasticsearchIndex::CONTACT->value, [
             'size' => 100,
             'query' => [
                 'multi_match' => [
-                    'query' => $searchable,
+                    'query' => $dto->getQuery(),
                     'type' => 'bool_prefix',
                     'fields' => ['name', 'emails', 'phones']
                 ]

@@ -6,6 +6,7 @@ use App\Actions\ContactCreateAction;
 use App\Actions\ContactSearchAction;
 use App\Actions\ContactUpdateAction;
 use App\DTOs\ContactCreateDTO;
+use App\DTOs\ContactSearchDTO;
 use App\DTOs\ContactUpdateDTO;
 use App\Http\Requests\ContactCreateFormRequest;
 use App\Http\Requests\ContactUpdateFormRequest;
@@ -29,13 +30,13 @@ class ContactController extends Controller
     public function index(Request $request, ElasticsearchService $elasticsearchService, ContactSearchAction $searchAction)
     {
         $validator = Validator::make($request->query(), [
-            'search' => ['filled', 'string']
+            'query' => ['filled', 'string']
         ]);
 
         $contactsBuilder = Contact::with(['emails', 'phones']);
 
-        if (isset($validator->valid()['search'])) {
-            $targetIds = $searchAction->handle($validator->valid()['search'], $elasticsearchService);
+        if (isset($validator->valid()['query'])) {
+            $targetIds = $searchAction->handle(new ContactSearchDTO(...$validator->valid()), $elasticsearchService);
             $contactsBuilder->whereIn('id', $targetIds)
                 ->orderByRaw("FIELD(id, {$targetIds->implode(', ')})");
         }
