@@ -14,6 +14,9 @@ class ContactPhoneResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->resource->id,
+            'phoneNumber' => $this->resource->phone_number
+        ];
     }
 }

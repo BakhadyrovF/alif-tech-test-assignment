@@ -1,6 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactEmailController;
+use App\Http\Controllers\ContactPhoneController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +16,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::apiResource('contacts', \App\Http\Controllers\ContactController::class);
-Route::apiResource('contacts/{contactId}/emails', \App\Http\Controllers\ContactEmailController::class);
+Route::apiResource('contacts', ContactController::class);
+Route::apiResource('contacts/{contactId}/emails', ContactEmailController::class);
+Route::apiResource('contacts/{contactId}/phones', ContactPhoneController::class);
