@@ -143,7 +143,7 @@ class ContactEmailController extends Controller
         ContactEmailDeleteAction $deleteAction,
         ElasticsearchService     $elasticsearchService,
         ResourceNotFoundResponse $notFoundResponse,
-    ) {
+    ): JsonResponse {
         $contactEmail = ContactEmail::where('contact_id', '=', $contactId)
             ->find($id);
 

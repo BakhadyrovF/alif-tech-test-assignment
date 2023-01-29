@@ -19,15 +19,17 @@ final class ContactEmailUpdateAction
      */
     public function handle(ContactEmail $contactEmail, ContactEmailUpdateDTO $dto, ElasticsearchService $elasticsearchService): ContactEmail
     {
-        $elasticsearchService->updateDocument(ElasticsearchIndex::CONTACT->value, $contactEmail->contact_id, [
-            'script' => [
-                'source' => 'ctx._source.emails.removeIf(e -> e == params.old_email); ctx._source.emails.add(params.new_email)',
-                'params' => [
-                    'old_email' => $contactEmail->email,
-                    'new_email' => $dto->getEmail()
+        if ($contactEmail->email !== $dto->getEmail()) {
+            $elasticsearchService->updateDocument(ElasticsearchIndex::CONTACT->value, $contactEmail->contact_id, [
+                'script' => [
+                    'source' => 'ctx._source.emails.removeIf(e -> e == params.old_email); ctx._source.emails.add(params.new_email)',
+                    'params' => [
+                        'old_email' => $contactEmail->email,
+                        'new_email' => $dto->getEmail()
+                    ]
                 ]
-            ]
-        ]);
+            ]);
+        }
 
         $contactEmail->update([
             'email' => $dto->getEmail()
