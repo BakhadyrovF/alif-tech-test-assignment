@@ -12,4 +12,12 @@ final class ResourceUpdatedResponse implements ResponseMessageContract
     {
         return trans('Resource has been updated.');
     }
+
+    /**
+     * @return int
+     */
+    public function getStatus(): int
+    {
+        return 200;
+    }
 }

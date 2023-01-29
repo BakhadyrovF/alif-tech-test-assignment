@@ -11,4 +11,12 @@ final class ResourceNotFoundResponse implements ResponseMessageContract
     {
         return trans('Resource with provided Id not found.');
     }
+
+    /**
+     * @return int
+     */
+    public function getStatus(): int
+    {
+        return 404;
+    }
 }

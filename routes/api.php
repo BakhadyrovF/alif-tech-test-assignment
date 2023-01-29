@@ -15,4 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::apiResource('contacts', \App\Http\Controllers\ContactController::class);
-Route::apiResource('contacts/{contactId}/emails', \App\Http\Controllers\ContactEmailController::class)->except('index');
+Route::apiResource('contacts/{contactId}/emails', \App\Http\Controllers\ContactEmailController::class);

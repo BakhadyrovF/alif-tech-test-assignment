@@ -56,7 +56,7 @@ class ContactController extends Controller
         return new JsonResponse([
             'message' => $createdResponse->getMessage(),
             'data' => new ContactResource($contact)
-        ], 201);
+        ], $createdResponse->getStatus());
     }
 
     /**
@@ -71,7 +71,7 @@ class ContactController extends Controller
         if (is_null($contact)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ], 404);
+            ], $notFoundResponse->getStatus());
         }
 
         return new ContactResource($contact);
@@ -97,13 +97,13 @@ class ContactController extends Controller
         if (is_null($contact)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ], 404);
+            ], $notFoundResponse->getStatus());
         }
 
         return new JsonResponse([
             'message' => $updatedResponse->getMessage(),
             'data' => new ContactResource($updateAction->handle($contact, new ContactUpdateDTO(...$request->validated())))
-        ]);
+        ], $updatedResponse->getStatus());
     }
 
     /**
@@ -118,7 +118,7 @@ class ContactController extends Controller
         if (is_null($contact)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ], 404);
+            ], $notFoundResponse->getStatus());
         }
 
         $contact->delete();

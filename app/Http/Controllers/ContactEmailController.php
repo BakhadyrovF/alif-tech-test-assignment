@@ -15,11 +15,28 @@ use App\Http\Responses\ResourceUpdatedResponse;
 use App\Models\Contact;
 use App\Models\ContactEmail;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ContactEmailController extends Controller
 {
+    /**
+     * @param int|string $contactId
+     * @param ResourceNotFoundResponse $notFoundResponse
+     * @return JsonResponse|AnonymousResourceCollection
+     */
+    public function index(int|string $contactId, ResourceNotFoundResponse $notFoundResponse): JsonResponse|AnonymousResourceCollection
+    {
+        $contact = Contact::find($contactId);
+
+        if (is_null($contact)) {
+            return new JsonResponse([
+                'message' => $notFoundResponse->getMessage()
+            ], $notFoundResponse->getStatus());
+        }
+
+        return ContactEmailResource::collection($contact->emails);
+    }
+
     /**
      * @param int|string $contactId
      * @param ContactEmailCreateFormRequest $request
@@ -40,14 +57,14 @@ class ContactEmailController extends Controller
         if (is_null($contact)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ]);
+            ], $notFoundResponse->getStatus());
         }
 
         $contactEmail = $createAction->handle(new ContactEmailCreateDTO($contact->id, ...$request->validated()));
         return new JsonResponse([
             'message' => $createdResponse->getMessage(),
             'data' => new ContactEmailResource($contactEmail)
-        ]);
+        ], $createdResponse->getStatus());
     }
 
     /**
@@ -64,7 +81,7 @@ class ContactEmailController extends Controller
         if (is_null($contactEmail)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ]);
+            ], $notFoundResponse->getStatus());
         }
 
         return new ContactEmailResource($contactEmail);
@@ -93,13 +110,13 @@ class ContactEmailController extends Controller
         if (is_null($contactEmail)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ]);
+            ], $notFoundResponse->getStatus());
         }
 
         return new JsonResponse([
             'message' => $updatedResponse->getMessage(),
             'data' => new ContactEmailResource($updateAction->handle($contactEmail, new ContactEmailUpdateDTO(...$request->validated())))
-        ]);
+        ], $updatedResponse->getStatus());
     }
 
     /**
@@ -116,7 +133,7 @@ class ContactEmailController extends Controller
         if (is_null($contactEmail)) {
             return new JsonResponse([
                 'message' => $notFoundResponse->getMessage()
-            ]);
+            ], $notFoundResponse->getStatus());
         }
 
         $contactEmail->delete();
