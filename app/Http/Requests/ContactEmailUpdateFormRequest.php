@@ -6,7 +6,7 @@ use App\Models\ContactEmail;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ContactEmailCreateFormRequest extends FormRequest
+class ContactEmailUpdateFormRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +26,10 @@ class ContactEmailCreateFormRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => ['required', 'string', 'max:120', Rule::unique(
+            'email' => ['required', 'string', 'min:10', 'max:255', Rule::unique(
                 ContactEmail::class,
                 'email'
-            )]
+            )->ignore($this->route('email'))]
         ];
     }
 }
