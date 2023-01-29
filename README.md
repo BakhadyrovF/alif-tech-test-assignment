@@ -27,4 +27,4 @@ docker compose exec app php artisan migrate --seed
 Note that the **Elasticsearch** container starts up slower than the others, which can cause **seeders** to fail.
 If **seeders** fail, try again after a couple of seconds.    
 
-**You can now access the application at http://localhost.**.
+**You can now access the application at http://localhost**.
