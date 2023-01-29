@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ContactCreateAction;
+use App\Actions\ContactDeleteAction;
 use App\Actions\ContactSearchAction;
 use App\Actions\ContactUpdateAction;
 use App\DTOs\ContactCreateDTO;
@@ -16,16 +17,17 @@ use App\Http\Responses\ResourceNotFoundResponse;
 use App\Http\Responses\ResourceUpdatedResponse;
 use App\Models\Contact;
 use App\Services\ElasticsearchService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
 {
     /**
-     *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
-     * @throws \Exception
+     * @return AnonymousResourceCollection
+     * @throws Exception
      */
     public function index(Request $request, ElasticsearchService $elasticsearchService, ContactSearchAction $searchAction)
     {
@@ -47,12 +49,19 @@ class ContactController extends Controller
     /**
      * @param ContactCreateFormRequest $request
      * @param ContactCreateAction $createAction
+     * @param ElasticsearchService $elasticsearchService
      * @param ResourceCreatedResponse $createdResponse
      * @return JsonResponse
+     * @throws Exception
      */
-    public function store(ContactCreateFormRequest $request, ContactCreateAction $createAction, ResourceCreatedResponse $createdResponse): JsonResponse
-    {
-        $contact = $createAction->handle(new ContactCreateDTO(...$request->validated()));
+    public function store(
+        ContactCreateFormRequest  $request,
+        ContactCreateAction       $createAction,
+        ElasticsearchService      $elasticsearchService,
+        ResourceCreatedResponse   $createdResponse
+    ): JsonResponse {
+        $contact = $createAction->handle(new ContactCreateDTO(...$request->validated()), $elasticsearchService);
+
         return new JsonResponse([
             'message' => $createdResponse->getMessage(),
             'data' => new ContactResource($contact)
@@ -81,16 +90,19 @@ class ContactController extends Controller
      * @param ContactUpdateFormRequest $request
      * @param int|string $id
      * @param ContactUpdateAction $updateAction
+     * @param ElasticsearchService $elasticsearchService
      * @param ResourceNotFoundResponse $notFoundResponse
      * @param ResourceUpdatedResponse $updatedResponse
      * @return JsonResponse
+     * @throws Exception
      */
     public function update(
-        ContactUpdateFormRequest $request,
-        int|string               $id,
-        ContactUpdateAction      $updateAction,
-        ResourceNotFoundResponse $notFoundResponse,
-        ResourceUpdatedResponse  $updatedResponse
+        ContactUpdateFormRequest           $request,
+        int|string                         $id,
+        ContactUpdateAction                $updateAction,
+        ElasticsearchService               $elasticsearchService,
+        ResourceNotFoundResponse           $notFoundResponse,
+        ResourceUpdatedResponse            $updatedResponse
     ): JsonResponse {
         $contact = Contact::find($id);
 
@@ -100,18 +112,27 @@ class ContactController extends Controller
             ], $notFoundResponse->getStatus());
         }
 
+
         return new JsonResponse([
             'message' => $updatedResponse->getMessage(),
-            'data' => new ContactResource($updateAction->handle($contact, new ContactUpdateDTO(...$request->validated())))
+            'data' => new ContactResource($updateAction->handle($contact, new ContactUpdateDTO(...$request->validated()), $elasticsearchService))
         ], $updatedResponse->getStatus());
     }
 
     /**
      * @param int|string $id
+     * @param ContactDeleteAction $deleteAction
+     * @param ElasticsearchService $elasticsearchService
      * @param ResourceNotFoundResponse $notFoundResponse
      * @return JsonResponse
+     * @throws Exception
      */
-    public function destroy(int|string $id, ResourceNotFoundResponse $notFoundResponse): JsonResponse
+    public function destroy(
+        int|string               $id,
+        ContactDeleteAction      $deleteAction,
+        ElasticsearchService     $elasticsearchService,
+        ResourceNotFoundResponse $notFoundResponse
+    ): JsonResponse
     {
         $contact = Contact::find($id);
 
@@ -121,7 +142,7 @@ class ContactController extends Controller
             ], $notFoundResponse->getStatus());
         }
 
-        $contact->delete();
+        $deleteAction->handle($contact, $elasticsearchService);
 
         return new JsonResponse(status: 204);
     }

@@ -42,6 +42,37 @@ final class ElasticsearchService
 
     /**
      * @param string $index
+     * @param int $id
+     * @return bool
+     * @throws Exception
+     */
+    public function deleteDocument(string $index, int $id): bool
+    {
+        $response = Http::delete($this->concatIndexToUrl($index) . '/_doc/' . $id);
+
+        $this->throwIfResponseIsNotOk($response);
+
+        return true;
+    }
+
+    /**
+     * @param string $index
+     * @param int $id
+     * @param array $body
+     * @return true
+     * @throws Exception
+     */
+    public function updateDocument(string $index, int $id, array $body): bool
+    {
+        $response = Http::post($this->concatIndexToUrl($index) . '/_update/' . $id,  $body);
+
+        $this->throwIfResponseIsNotOk($response);
+
+        return true;
+    }
+
+    /**
+     * @param string $index
      * @return bool
      * @throws Exception
      */
