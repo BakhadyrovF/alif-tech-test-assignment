@@ -34,7 +34,6 @@ services:
         restart: unless-stopped
         volumes:
             -   alif-tech-test-assignment-db-data:/var/lib/mysql
-            - ./docker/mysql/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
         environment:
             MYSQL_DATABASE: ${DB_DATABASE}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
